@@ -1,0 +1,61 @@
+#include <Servo.h>
+#include <Keypad.h>
+
+Servo servo1;
+Servo servo2;
+
+const byte ROWS = 4; // Four rows
+const byte COLS = 3; // Three columns
+char keys[ROWS][COLS] = {
+  {'1','2','3'},
+  {'4','5','6'},
+  {'7','8','9'},
+  {'*','0','#'}
+};  
+byte colPins[COLS] = {5, 4, 3}; // Connect to the row pinouts of the keypad
+byte rowPins[ROWS] = {9, 8, 7, 6}; // Connect to the column pinouts of the keypad
+Keypad keypad = Keypad(makeKeymap(keys), colPins, rowPins, ROWS, COLS);
+
+const int servo1StartPosition = 0;
+int servo1Position = servo1StartPosition; // Initialize with start position
+float y = 6.5;
+float servo1Step = degrees(asin(y / 19.5)); // Initial step based on y
+const int servo1MaxPosition = 89; 
+const int servo2StartPosition = 20;
+const int servo2EndPosition = 0;
+
+void setup() {
+  Serial.begin(9600);
+  servo1.attach(11);
+  servo2.attach(10);
+  servo1.write(servo1Position);
+  servo2.write(servo2StartPosition);
+}
+
+void loop() {
+  char key = keypad.getKey();
+  
+  if (key) {
+    Serial.println(key);
+    if (key == '1') {
+      y += 8.5;
+}
+    
+    // Common code for updating servo position based on y
+    servo1Step = degrees(asin(y / 19.5));
+    servo1Position = servo1Step;
+    
+    // Check and reset if y exceeds threshold
+    if (y > 17) {
+      servo1Position = servo1StartPosition;
+      y = 0; // Reset y to its initial value
+      servo1Step = degrees(asin(y / 19.5)); // Recalculate initial step
+    }
+    
+    // Write updated positions to servos
+    servo1.write(servo1Position);
+    servo2.write(servo2EndPosition);
+    delay(5000); 
+    servo2.write(servo2StartPosition);
+  }
+}
